@@ -17,6 +17,8 @@
 #include <stb_image_write.h>
 #include <tiny_gltf.h>
 
+#include <klein/klein.hpp>
+
 GLuint modelMatrixLocation, modelViewProjMatrixLocation,
     modelViewMatrixLocation, normalMatrixLocation, uLightDirection,
     uLightIntensity, uBaseColorTexture, uBaseColorFactor, uMetallicFactor,

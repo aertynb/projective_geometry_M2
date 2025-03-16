@@ -16,6 +16,7 @@ set(GLFW_DIR glfw-3.3.1)
 set(GLM_DIR glm-0.9.9.7)
 set(GLAD_DIR glad)
 set(TINYGLTF_DIR tinygltf-bcf2ce586ee8bf2a2a816afa6bfe2f8692ba6ac2)
+set(KLEIN_DIR klein)
 set(ARGS_DIR args-6.2.2)
 
 # Add GLFW subdirectory, set some options to OFF by default (the user can still enable them by modifying its CMakeCache.txt)
@@ -23,6 +24,7 @@ option(GLFW_BUILD_DOCS OFF)
 option(GLFW_BUILD_TESTS OFF)
 option(GLFW_BUILD_EXAMPLES OFF)
 add_subdirectory(third-party/${GLFW_DIR})
+add_subdirectory(third-party/${KLEIN_DIR})
 
 if(${CMAKE_VERSION} VERSION_LESS "3.10.0")
     set(OpenGL_GL_PREFERENCE LEGACY)
@@ -94,6 +96,7 @@ target_include_directories(
     ${APP}
     PUBLIC
     ${OPENGL_INCLUDE_DIRS}
+    third-party/${KLEIN_DIR}/public
     third-party/${GLFW_DIR}/include
     third-party/${GLM_DIR}
     third-party/${GLAD_DIR}/include
@@ -116,6 +119,7 @@ set_property(TARGET ${APP} PROPERTY CXX_STANDARD 17)
 target_link_libraries(
     ${APP}
     ${LIBRARIES}
+    klein
 )
 
 install(
