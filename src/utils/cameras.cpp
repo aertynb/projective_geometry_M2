@@ -28,15 +28,7 @@ ViewFrame fromViewToWorldMatrix(const mat4 &viewToWorldMatrix)
 
 bool FirstPersonCameraController::update(float elapsedTime)
 {
-  if (glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_RIGHT) &&
-      !m_MiddleButtonPressed) {
-    m_MiddleButtonPressed = true;
-    glfwGetCursorPos(
-        m_pWindow, &m_LastCursorPosition.x, &m_LastCursorPosition.y);
-  } else if (!glfwGetMouseButton(m_pWindow, GLFW_MOUSE_BUTTON_RIGHT) &&
-             m_MiddleButtonPressed) {
-    m_MiddleButtonPressed = false;
-  }
+  m_MiddleButtonPressed = true;
 
   const auto cursorDelta = ([&]() {
     if (m_MiddleButtonPressed) {
@@ -91,8 +83,8 @@ bool FirstPersonCameraController::update(float elapsedTime)
   }
 
   // cursor going right, so minus because we want pan left angle:
-  const float panLeftAngle = -0.01f * float(cursorDelta.x);
-  const float tiltDownAngle = 0.01f * float(cursorDelta.y);
+  const float panLeftAngle = float(cursorDelta.x);
+  const float tiltDownAngle = float(cursorDelta.y);
 
   const auto hasMoved = truckLeft || pedestalUp || dollyIn || panLeftAngle ||
                         tiltDownAngle || rollRightAngle;

@@ -34,6 +34,9 @@ public:
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
     glfwWindowHint(GLFW_SAMPLES, 4);
 
+    std::cout << width << std::endl;
+    std::cout << height << std::endl;
+
     m_pWindow =
         glfwCreateWindow(int(width), int(height), title, nullptr, nullptr);
     if (!m_pWindow) {

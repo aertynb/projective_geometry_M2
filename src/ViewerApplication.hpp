@@ -24,8 +24,8 @@ private:
     GLsizei count; // Number of elements in range
   };
 
-  GLsizei m_nWindowWidth = 1280;
-  GLsizei m_nWindowHeight = 720;
+  GLsizei m_nWindowWidth = 1920;
+  GLsizei m_nWindowHeight = 1080;
 
   const fs::path m_AppPath;
   const std::string m_AppName;
@@ -54,7 +54,7 @@ private:
   const std::string m_ImGuiIniFilename;
   // Last to be initialized, first to be destroyed:
   GLFWHandle m_GLFWHandle{int(m_nWindowWidth), int(m_nWindowHeight),
-      "glTF Viewer",
+      "Projective Geometry",
       m_OutputPath.empty()}; // show the window only if m_OutputPath is empty
   /*
     ! THE ORDER OF DECLARATION OF MEMBER VARIABLES IS IMPORTANT !

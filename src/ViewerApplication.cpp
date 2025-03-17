@@ -115,9 +115,9 @@ int ViewerApplication::run()
   // Build projection matrix
   const auto diag = glm::vec3(1., 1., 1);
   auto maxDistance = glm::length(diag);
-  const auto projMatrix =
-      glm::perspective(70.f, float(m_nWindowWidth) / m_nWindowHeight,
-          0.001f * maxDistance, 1.5f * maxDistance);
+  auto farView = 500.f;
+  const auto projMatrix = glm::perspective(70.f,
+      float(m_nWindowWidth) / m_nWindowHeight, 0.001f * maxDistance, farView);
 
   std::unique_ptr<CameraController> cameraController =
       std::make_unique<FirstPersonCameraController>(
@@ -125,11 +125,8 @@ int ViewerApplication::run()
   if (m_hasUserCamera) {
     cameraController->setCamera(m_userCamera);
   } else {
-    const auto center = glm::vec3(0.f, 0.f, 0.f);
-    const auto up = glm::vec3(0, 1, 0);
-    const auto eye = glm::vec3(1.f, 1.f, 1.f);
     cameraController->setCamera(
-        Camera{glm::vec3(0, 0, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)});
+        Camera{glm::vec3(0, 1, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)});
   }
 
   // const auto textureObjects = createTextureObjects(model);
@@ -167,7 +164,7 @@ int ViewerApplication::run()
       "assets/skybox/back.jpg"};
 
   QuadCustom quad(1, 1);
-  CubeCustom cube(1, 1, 1);
+  CubeCustom cube(farView, farView, farView);
   Skybox skybox(faces, cube, m_ShadersRootPath);
 
   quad.initObj(0, 1, 2);
@@ -207,34 +204,10 @@ int ViewerApplication::run()
   // Uniform variable for occlusion
   bool occlusionState = true;
 
-  // if (!m_OutputPath.empty()) {
-  //   const auto numComponents = 3;
-  //   std::vector<unsigned char> pixels(
-  //       m_nWindowWidth * m_nWindowHeight * numComponents);
-  //   renderToImage(
-  //       m_nWindowWidth, m_nWindowHeight, numComponents, pixels.data(), [&]()
-  //       {
-  //         const auto camera = cameraController->getCamera();
-  //         drawScene(
-  //             camera, lightDirection, lightIntensity, lightCam,
-  //             occlusionState);
-  //       });
-  //   flipImageYAxis(
-  //       m_nWindowWidth, m_nWindowHeight, numComponents, pixels.data());
-
-  //   // Write png on disk
-  //   const auto strPath = m_OutputPath.string();
-  //   stbi_write_png(
-  //       strPath.c_str(), m_nWindowWidth, m_nWindowHeight, 3, pixels.data(),
-  //       0);
-
-  //   return 0; // Exit, in that mode we don't want to run interactive
-  //             // viewer
-  // }
-
   // Loop until the user closes the window
   for (auto iterationCount = 0u; !m_GLFWHandle.shouldClose();
       ++iterationCount) {
+    glfwSetInputMode(m_GLFWHandle.window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     const auto seconds = glfwGetTime();
 
     const auto camera = cameraController->getCamera();
