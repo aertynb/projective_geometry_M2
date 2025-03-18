@@ -1,6 +1,7 @@
 #pragma once
 
 #include "tiny_gltf.h"
+#include "utils/FreeFlyCamera.hpp"
 #include "utils/GLFWHandle.hpp"
 #include "utils/cameras.hpp"
 #include "utils/filesystem.hpp"
@@ -24,8 +25,8 @@ private:
     GLsizei count; // Number of elements in range
   };
 
-  GLsizei m_nWindowWidth = 1920;
-  GLsizei m_nWindowHeight = 1080;
+  GLsizei m_nWindowWidth = 1280;
+  GLsizei m_nWindowHeight = 720;
 
   const fs::path m_AppPath;
   const std::string m_AppName;

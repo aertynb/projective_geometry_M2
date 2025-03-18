@@ -19,6 +19,11 @@
 
 #include <klein/klein.hpp>
 
+bool first_mouse = true;
+glm::FreeflyCamera camera{};
+float last_xpos = 0;
+float last_ypos = 0;
+
 GLuint modelMatrixLocation, modelViewProjMatrixLocation,
     modelViewMatrixLocation, normalMatrixLocation, uLightDirection,
     uLightIntensity, uBaseColorTexture, uBaseColorFactor, uMetallicFactor,
@@ -34,51 +39,39 @@ void keyCallback(
   }
 }
 
-bool ViewerApplication::loadGltfFile(tinygltf::Model &model)
+static void cursor_position_callback(
+    GLFWwindow * /*window*/, double xpos, double ypos)
 {
-  tinygltf::TinyGLTF loader;
-  std::string err;
-  std::string warn;
-  bool ret =
-      loader.LoadASCIIFromFile(&model, &err, &warn, m_gltfFilePath.string());
-
-  if (ret) {
-    printf("glTF has been loaded sucessfully\n");
+  if (first_mouse) {
+    last_xpos = xpos;
+    last_ypos = ypos;
+    first_mouse = false;
   }
 
-  if (!ret) {
-    printf("Failed to parse glTF\n");
-    return -1;
-  }
+  camera.rotateLeft(xpos - last_xpos);
+  camera.rotateUp(last_ypos - ypos);
 
-  if (!warn.empty()) {
-    printf("Warn: %s\n", warn.c_str());
-  }
-
-  if (!err.empty()) {
-    printf("Err: %s\n", err.c_str());
-  }
-
-  return ret;
+  last_xpos = xpos;
+  last_ypos = ypos;
 }
 
-std::vector<GLuint> ViewerApplication::createBufferObjects(
-    const tinygltf::Model &model)
+void process_continuous_input(GLFWwindow *window, glm::FreeflyCamera &camera)
 {
-  std::vector<GLuint> bufferObjects(
-      model.buffers.size(), 0); // Assuming buffers is a std::vector of Buffer
-  glGenBuffers(model.buffers.size(), bufferObjects.data());
-  for (size_t i = 0; i < model.buffers.size(); ++i) {
-    glBindBuffer(GL_ARRAY_BUFFER, bufferObjects[i]);
-    glBufferStorage(GL_ARRAY_BUFFER,
-        model.buffers[i].data.size(), // Assume a Buffer has a data member
-                                      // variable of type std::vector
-        model.buffers[i].data.data(), 0);
+  if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
+    camera.tryMoveUp(0.1f);
   }
-  glBindBuffer(
-      GL_ARRAY_BUFFER, 0); // Cleanup the binding point after the loop only
-
-  return bufferObjects;
+  if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
+    camera.tryMoveUp(-0.1f);
+  }
+  if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
+    camera.tryMoveLeft(0.1f);
+  }
+  if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
+    camera.tryMoveLeft(-0.1f);
+  }
+  if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
+    glfwSetWindowShouldClose(window, true);
+  }
 }
 
 void getUniform(const GLProgram &glslProgram)
@@ -119,15 +112,15 @@ int ViewerApplication::run()
   const auto projMatrix = glm::perspective(70.f,
       float(m_nWindowWidth) / m_nWindowHeight, 0.001f * maxDistance, farView);
 
-  std::unique_ptr<CameraController> cameraController =
-      std::make_unique<FirstPersonCameraController>(
-          m_GLFWHandle.window(), 0.5f * maxDistance);
-  if (m_hasUserCamera) {
-    cameraController->setCamera(m_userCamera);
-  } else {
-    cameraController->setCamera(
-        Camera{glm::vec3(0, 1, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)});
-  }
+  // std::unique_ptr<CameraController> cameraController =
+  //     std::make_unique<FirstPersonCameraController>(
+  //         m_GLFWHandle.window(), 0.5f * maxDistance);
+  // if (m_hasUserCamera) {
+  //   cameraController->setCamera(m_userCamera);
+  // } else {
+  //   cameraController->setCamera(
+  //       Camera{glm::vec3(0, 1, 0), glm::vec3(0, 0, -1), glm::vec3(0, 1, 0)});
+  // }
 
   // const auto textureObjects = createTextureObjects(model);
 
@@ -170,7 +163,7 @@ int ViewerApplication::run()
   quad.initObj(0, 1, 2);
   // cube.initObj(0, 1, 2);
 
-  const auto drawScene = [&](const Camera &camera) {
+  const auto drawScene = [&](const glm::FreeflyCamera &camera) {
     glViewport(0, 0, m_nWindowWidth, m_nWindowHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     const auto viewMatrix = camera.getViewMatrix();
@@ -186,7 +179,7 @@ int ViewerApplication::run()
 
     // cube.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
     //     modelViewProjMatrixLocation, modelViewMatrixLocation,
-    //     normalMatrixLocation);
+    //     normalMatrixLocation, glslProgram.glId());
 
     skybox.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
         modelViewProjMatrixLocation, modelViewMatrixLocation,
@@ -207,12 +200,12 @@ int ViewerApplication::run()
   // Loop until the user closes the window
   for (auto iterationCount = 0u; !m_GLFWHandle.shouldClose();
       ++iterationCount) {
-    glfwSetInputMode(m_GLFWHandle.window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     const auto seconds = glfwGetTime();
 
-    const auto camera = cameraController->getCamera();
     // drawScene(camera, lightDirection, lightIntensity, lightCam,
     // occlusionState);
+
+    process_continuous_input(m_GLFWHandle.window(), camera);
 
     drawScene(camera);
 
@@ -220,24 +213,27 @@ int ViewerApplication::run()
     imguiNewFrame();
 
     {
-      ImGui::Begin("GUI");
-      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-          1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
-        ImGui::Text("eye: %.3f %.3f %.3f", camera.eye().x, camera.eye().y,
-            camera.eye().z);
-        ImGui::Text("center: %.3f %.3f %.3f", camera.center().x,
-            camera.center().y, camera.center().z);
-        ImGui::Text(
-            "up: %.3f %.3f %.3f", camera.up().x, camera.up().y, camera.up().z);
+      // ImGui::Begin("GUI");
+      // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+      //     1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      // if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
+      // {
+      //   ImGui::Text("eye: %.3f %.3f %.3f", camera.eye().x, camera.eye().y,
+      //       camera.eye().z);
+      //   ImGui::Text("center: %.3f %.3f %.3f", camera.center().x,
+      //       camera.center().y, camera.center().z);
+      //   ImGui::Text(
+      //       "up: %.3f %.3f %.3f", camera.up().x, camera.up().y,
+      //       camera.up().z);
 
-        ImGui::Text("front: %.3f %.3f %.3f", camera.front().x, camera.front().y,
-            camera.front().z);
-        ImGui::Text("left: %.3f %.3f %.3f", camera.left().x, camera.left().y,
-            camera.left().z);
+      //   ImGui::Text("front: %.3f %.3f %.3f", camera.front().x,
+      //   camera.front().y,
+      //       camera.front().z);
+      //   ImGui::Text("left: %.3f %.3f %.3f", camera.left().x, camera.left().y,
+      //       camera.left().z);
 
-        ImGui::End();
-      }
+      //   ImGui::End();
+      // }
     }
 
     imguiRenderFrame();
@@ -248,7 +244,7 @@ int ViewerApplication::run()
     auto guiHasFocus =
         ImGui::GetIO().WantCaptureMouse || ImGui::GetIO().WantCaptureKeyboard;
     if (!guiHasFocus) {
-      cameraController->update(float(ellapsedTime));
+      // cameraController->update(float(ellapsedTime));
     }
 
     m_GLFWHandle.swapBuffers(); // Swap front and back buffers
@@ -282,6 +278,8 @@ ViewerApplication::ViewerApplication(const fs::path &appPath, uint32_t width,
                                   // positions in this file
 
   glfwSetKeyCallback(m_GLFWHandle.window(), keyCallback);
+  glfwSetCursorPosCallback(m_GLFWHandle.window(), cursor_position_callback);
+  glfwSetInputMode(m_GLFWHandle.window(), GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
   printGLVersion();
 }

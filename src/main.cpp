@@ -57,8 +57,8 @@ int main(int argc, char **argv)
           }
         }
 
-        uint32_t width = imageWidth ? args::get(imageWidth) : 1920;
-        uint32_t height = imageHeight ? args::get(imageHeight) : 1080;
+        uint32_t width = imageWidth ? args::get(imageWidth) : 1280;
+        uint32_t height = imageHeight ? args::get(imageHeight) : 720;
 
         ViewerApplication app{
             fs::path{argv[0]},
