@@ -39,7 +39,7 @@ FetchContent_Declare(
 )
 FetchContent_GetProperties(simde)
 if(NOT simde_POPULATED)
-    FetchContent_Populate(simde)
+    FetchContent_MakeAvailable(simde)
 endif()
 
 # The default platform and instruction set is x86 SSE3

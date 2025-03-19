@@ -8,6 +8,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/io.hpp>
 
+#include "utils/Player.hpp"
 #include "utils/cameras.hpp"
 #include "utils/cube.hpp"
 #include "utils/quad.hpp"
@@ -20,7 +21,7 @@
 #include <klein/klein.hpp>
 
 bool first_mouse = true;
-glm::FreeflyCamera camera{};
+Player player{{0, 2, 0}};
 float last_xpos = 0;
 float last_ypos = 0;
 
@@ -48,30 +49,31 @@ static void cursor_position_callback(
     first_mouse = false;
   }
 
-  camera.rotateLeft(xpos - last_xpos);
-  camera.rotateUp(last_ypos - ypos);
+  player.camera.rotateLeft(xpos - last_xpos);
+  player.camera.rotateUp(last_ypos - ypos);
 
   last_xpos = xpos;
   last_ypos = ypos;
 }
 
-void process_continuous_input(GLFWwindow *window, glm::FreeflyCamera &camera)
+void process_continuous_input(GLFWwindow *window)
 {
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    camera.tryMoveUp(0.1f);
+    player.moveUp(0.001f);
   }
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    camera.tryMoveUp(-0.1f);
+    player.moveUp(-0.001f);
   }
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    camera.tryMoveLeft(0.1f);
+    player.moveLeft(0.001f);
   }
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    camera.tryMoveLeft(-0.1f);
+    player.moveLeft(-0.001f);
   }
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
   }
+  player.update();
 }
 
 void getUniform(const GLProgram &glslProgram)
@@ -163,23 +165,17 @@ int ViewerApplication::run()
   quad.initObj(0, 1, 2);
   // cube.initObj(0, 1, 2);
 
-  const auto drawScene = [&](const glm::FreeflyCamera &camera) {
+  const auto drawScene = [&]() {
     glViewport(0, 0, m_nWindowWidth, m_nWindowHeight);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    const auto viewMatrix = camera.getViewMatrix();
+    const auto viewMatrix = player.camera.getViewMatrix();
     const auto modelMatrix = glm::mat4(1.0f);
 
     glslProgram.use();
 
-    getUniform(glslProgram);
-
     quad.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
         modelViewProjMatrixLocation, modelViewMatrixLocation,
         normalMatrixLocation);
-
-    // cube.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
-    //     modelViewProjMatrixLocation, modelViewMatrixLocation,
-    //     normalMatrixLocation, glslProgram.glId());
 
     skybox.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
         modelViewProjMatrixLocation, modelViewMatrixLocation,
@@ -202,38 +198,22 @@ int ViewerApplication::run()
       ++iterationCount) {
     const auto seconds = glfwGetTime();
 
-    // drawScene(camera, lightDirection, lightIntensity, lightCam,
-    // occlusionState);
+    process_continuous_input(m_GLFWHandle.window());
 
-    process_continuous_input(m_GLFWHandle.window(), camera);
-
-    drawScene(camera);
+    drawScene();
 
     // GUI code:
     imguiNewFrame();
 
     {
-      // ImGui::Begin("GUI");
-      // ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
-      //     1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
-      // if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen))
-      // {
-      //   ImGui::Text("eye: %.3f %.3f %.3f", camera.eye().x, camera.eye().y,
-      //       camera.eye().z);
-      //   ImGui::Text("center: %.3f %.3f %.3f", camera.center().x,
-      //       camera.center().y, camera.center().z);
-      //   ImGui::Text(
-      //       "up: %.3f %.3f %.3f", camera.up().x, camera.up().y,
-      //       camera.up().z);
-
-      //   ImGui::Text("front: %.3f %.3f %.3f", camera.front().x,
-      //   camera.front().y,
-      //       camera.front().z);
-      //   ImGui::Text("left: %.3f %.3f %.3f", camera.left().x, camera.left().y,
-      //       camera.left().z);
-
-      //   ImGui::End();
-      // }
+      ImGui::Begin("GUI");
+      ImGui::Text("Application average %.3f ms/frame (%.1f FPS)",
+          1000.0f / ImGui::GetIO().Framerate, ImGui::GetIO().Framerate);
+      if (ImGui::CollapsingHeader("Camera", ImGuiTreeNodeFlags_DefaultOpen)) {
+        ImGui::Text("position : %.3f %.3f %.3f", player.camera.getPosition().x,
+            player.camera.getPosition().y, player.camera.getPosition().z);
+        ImGui::End();
+      }
     }
 
     imguiRenderFrame();
@@ -255,9 +235,8 @@ int ViewerApplication::run()
   return 0;
 }
 
-ViewerApplication::ViewerApplication(const fs::path &appPath, uint32_t width,
-    uint32_t height, const std::string &vertexShader,
-    const std::string &fragmentShader) :
+ViewerApplication::ViewerApplication(
+    const fs::path &appPath, uint32_t width, uint32_t height) :
     m_nWindowWidth(width),
     m_nWindowHeight(height),
     m_AppPath{appPath},
@@ -265,14 +244,6 @@ ViewerApplication::ViewerApplication(const fs::path &appPath, uint32_t width,
     m_ImGuiIniFilename{m_AppName + ".imgui.ini"},
     m_ShadersRootPath{m_AppPath.parent_path() / "shaders"}
 {
-  if (!vertexShader.empty()) {
-    m_vertexShader = vertexShader;
-  }
-
-  if (!fragmentShader.empty()) {
-    m_fragmentShader = fragmentShader;
-  }
-
   ImGui::GetIO().IniFilename =
       m_ImGuiIniFilename.c_str(); // At exit, ImGUI will store its windows
                                   // positions in this file

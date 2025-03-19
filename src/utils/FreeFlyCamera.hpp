@@ -8,22 +8,17 @@ namespace glm
 struct FreeflyCamera
 {
 public:
-  FreeflyCamera() : m_fPhi{M_PI}, m_fTheta{0.} { computeDirectionVectors(); }
+  glm::vec3 m_FrontVector, m_LeftVector;
 
-  void tryMoveLeft(float t)
+  FreeflyCamera(const glm::vec3 &pos) :
+      m_fPhi{M_PI}, m_fTheta{0.}, m_Position{pos}
   {
-    glm::vec3 newPosition = m_Position + t * m_LeftVector;
-    if (!checkCollision(newPosition)) {
-      m_Position = newPosition;
-    }
+    computeDirectionVectors();
   }
 
-  void tryMoveUp(float t)
-  {
-    // glm::vec3 horizontalFront = glm::vec3(m_FrontVector.x, 0,
-    // m_FrontVector.z);
-    m_Position = m_Position + t * m_FrontVector;
-  }
+  void tryMoveLeft(float t) { m_Position = m_Position + t * m_LeftVector; }
+
+  void tryMoveUp(float t) { m_Position = m_Position + t * m_FrontVector; }
 
   void rotateLeft(float degrees)
   {
@@ -47,8 +42,12 @@ public:
         m_Position, m_Position + m_FrontVector, glm::normalize(m_UpVector));
   }
 
+  const glm::vec3 getPosition() const { return m_Position; }
+
+  void updatePos(const glm::vec3 &pos) { m_Position = pos; }
+
 private:
-  glm::vec3 m_FrontVector, m_Position, m_LeftVector, m_UpVector;
+  glm::vec3 m_Position, m_UpVector;
   float m_fPhi, m_fTheta;
 
   void computeDirectionVectors()
@@ -60,7 +59,5 @@ private:
     m_LeftVector = glm::vec3(sin(radPhi + M_PI / 2), 0, cos(radPhi + M_PI / 2));
     m_UpVector = glm::cross(m_FrontVector, m_LeftVector);
   }
-
-  bool checkCollision(const glm::vec3 &position) { return false; }
 };
 } // namespace glm

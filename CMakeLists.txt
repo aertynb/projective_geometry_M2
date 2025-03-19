@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.10)
 cmake_policy(SET CMP0048 NEW)
 
 project(gltf-viewer VERSION 0.0.1)

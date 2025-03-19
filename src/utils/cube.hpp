@@ -55,20 +55,15 @@ public:
   }
 
   void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
-      const glm::mat4 &projMatrix, GLuint modelMatrixLocation,
-      GLuint modelViewProjMatrixLocation, GLuint modelViewMatrixLocation,
-      GLuint normalMatrixLocation, GLuint glId)
+      const glm::mat4 &projMatrix, GLuint modelViewProjMatrixLocation)
   // TO DO use a struct to pass all args
   {
-    getUniform(glId, modelMatrixLocation, modelViewProjMatrixLocation,
-        modelViewMatrixLocation, normalMatrixLocation);
     const auto mvMatrix = viewMatrix * modelMatrix;
     const auto mvpMatrix = projMatrix * mvMatrix;
-    const auto normalMatrix = glm::transpose(glm::inverse(mvMatrix));
     glUniformMatrix4fv(
         modelViewProjMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
-    glUniformMatrix4fv(
-        modelViewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvMatrix));
+    // glUniformMatrix4fv(
+    //     modelViewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvMatrix));
     // glUniformMatrix4fv(
     //     normalMatrixLocation, 1, GL_FALSE, glm::value_ptr(normalMatrix));
     //     Error here don't uncomment

@@ -5,8 +5,6 @@ layout (location = 0) in vec3 aPos;
 out vec3 vTexCoords;
 
 uniform mat4 uModelViewProjMatrix;
-uniform mat4 uModelViewMatrix;
-uniform mat4 uNormalMatrix;
 
 void main()
 {

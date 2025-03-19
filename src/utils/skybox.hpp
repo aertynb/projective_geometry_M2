@@ -51,9 +51,9 @@ public:
     program.use();
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
     const auto skyViewMatrix = glm::mat4(glm::mat3(viewMatrix));
-    cube.draw(modelMatrix, skyViewMatrix, projMatrix, modelMatrixLocation,
-        modelViewProjMatrixLocation, modelViewMatrixLocation,
-        normalMatrixLocation, program.glId());
+    const auto mvpMatrixLoc =
+        glGetUniformLocation(program.glId(), "uModelViewProjMatrix");
+    cube.draw(modelMatrix, skyViewMatrix, projMatrix, mvpMatrixLoc);
     glDepthMask(GL_TRUE);
   }
 
