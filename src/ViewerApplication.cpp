@@ -11,6 +11,7 @@
 #include "utils/Player.hpp"
 #include "utils/cameras.hpp"
 #include "utils/cube.hpp"
+#include "utils/line.hpp"
 #include "utils/quad.hpp"
 #include "utils/skybox.hpp"
 #include "utils/uniformHandler.hpp"
@@ -22,7 +23,9 @@
 #include <klein/klein.hpp>
 
 bool first_mouse = true;
+bool holdingMouse = true;
 Player player{{0, 2, 0}};
+LineCustom line;
 float last_xpos = 0;
 float last_ypos = 0;
 
@@ -73,6 +76,14 @@ void process_continuous_input(GLFWwindow *window)
   }
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
     player.moveLeft(-1.f);
+  }
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
+    line.createLine(player.getPos(), player.camera.m_FrontVector, 10.0f);
+    holdingMouse = true;
+  }
+  if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
+    line.clearVertex();
+    holdingMouse = false;
   }
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
@@ -155,7 +166,7 @@ int ViewerApplication::run()
   CubeCustom cube(farView, farView, farView);
   Skybox skybox(faces, cube, m_ShadersRootPath);
 
-  quad.initObj(0, 1, 2);
+  // quad.initObj(0, 1, 2);
   // cube.initObj(0, 1, 2);
 
   const auto drawScene = [&]() {
@@ -164,11 +175,13 @@ int ViewerApplication::run()
     const auto viewMatrix = player.camera.getViewMatrix();
     const auto modelMatrix = glm::mat4(1.0f);
 
+    skybox.draw(modelMatrix, viewMatrix, projMatrix); // always first
+
     glslProgram.use();
 
     quad.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
 
-    skybox.draw(modelMatrix, viewMatrix, projMatrix);
+    line.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
   };
 
   // Uniform variable for light
@@ -185,6 +198,7 @@ int ViewerApplication::run()
   // Loop until the user closes the window
   for (auto iterationCount = 0u; !m_GLFWHandle.shouldClose();
       ++iterationCount) {
+    glfwSwapInterval(1);
     const auto seconds = glfwGetTime();
 
     process_continuous_input(m_GLFWHandle.window());

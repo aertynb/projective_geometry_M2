@@ -39,6 +39,7 @@ public:
   QuadCustom(GLfloat width, GLfloat height) : m_nVertexCount(0)
   {
     build(width, height); // Build method (implementation in the .cpp)
+    initObj(0, 1, 2);
   }
 
   // Returns a pointer to the data
@@ -50,12 +51,6 @@ public:
   const unsigned long getVertexSize() const
   {
     return QuadVertex::sizeOfVertex();
-  }
-
-  void initObj(GLuint vPos, GLuint vNorm, GLuint vTex)
-  {
-    initVboPointer();
-    initVaoPointer(vPos, vNorm, vTex);
   }
 
   void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
@@ -129,6 +124,12 @@ private:
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, getVertexCount() * getVertexSize(),
         getDataPointer(), GL_STATIC_DRAW);
+  }
+
+  void initObj(GLuint vPos, GLuint vNorm, GLuint vTex)
+  {
+    initVboPointer();
+    initVaoPointer(vPos, vNorm, vTex);
   }
 
   std::vector<QuadVertex> m_Vertices;

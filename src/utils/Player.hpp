@@ -27,7 +27,7 @@ private:
   float gravity = -1.0f;
   float jumpStrength = 1.0f;
   float verticalVelocity = 0.f;
-  float deltaTime = 0.0016f;
+  float deltaTime = 0.0320f;
   bool isGrounded = true;
   kln::translator forwardT;
   kln::translator leftT;

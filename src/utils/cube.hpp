@@ -57,33 +57,16 @@ public:
 
   void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
       const glm::mat4 &projMatrix, GLuint modelViewProjMatrixLocation) const
-  // TO DO use a struct to pass all args
   {
     const auto mvMatrix = viewMatrix * modelMatrix;
     const auto mvpMatrix = projMatrix * mvMatrix;
     glUniformMatrix4fv(
         modelViewProjMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
-    // glUniformMatrix4fv(
-    //     modelViewMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvMatrix));
-    // glUniformMatrix4fv(
-    //     normalMatrixLocation, 1, GL_FALSE, glm::value_ptr(normalMatrix));
-    //     Error here don't uncomment
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, getVertexCount());
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-  }
-
-  void getUniform(GLuint glId, GLuint modelMatrixLocation,
-      GLuint modelViewProjMatrixLocation, GLuint modelViewMatrixLocation,
-      GLuint normalMatrixLocation)
-  {
-    modelMatrixLocation = glGetUniformLocation(glId, "uModelMatrix");
-    modelViewProjMatrixLocation =
-        glGetUniformLocation(glId, "uModelViewProjMatrix");
-    modelViewMatrixLocation = glGetUniformLocation(glId, "uModelViewMatrix");
-    normalMatrixLocation = glGetUniformLocation(glId, "uNormalMatrix");
   }
 
 private:
