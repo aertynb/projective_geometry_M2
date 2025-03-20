@@ -2,6 +2,7 @@
 
 #include "cube.hpp"
 #include "shaders.hpp"
+#include "uniformHandler.hpp"
 
 #include <stb_image.h>
 
@@ -10,7 +11,10 @@ class Skybox
 public:
   Skybox(const std::vector<std::string> &faces, CubeCustom &_cube,
       const fs::path &m_ShadersRootPath) :
-      cube{_cube}
+      cube{_cube},
+      program{compileProgram({m_ShadersRootPath / "skybox.vs.glsl",
+          m_ShadersRootPath / "skybox.fs.glsl"})},
+      skyHandler(program)
   {
     glGenTextures(1, &textureID);
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
@@ -34,31 +38,25 @@ public:
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-
-    program = compileProgram({m_ShadersRootPath / "skybox.vs.glsl",
-        m_ShadersRootPath / "skybox.fs.glsl"});
-
-    cube.initObj(0, 1, 2);
   }
 
   // Function that draws a cube and apply the skybox on it
   void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
-      const glm::mat4 &projMatrix, GLuint modelMatrixLocation,
-      GLuint modelViewProjMatrixLocation, GLuint modelViewMatrixLocation,
-      GLuint normalMatrixLocation)
+      const glm::mat4 &projMatrix)
   {
     glDepthMask(GL_FALSE);
     program.use();
     glBindTexture(GL_TEXTURE_CUBE_MAP, textureID);
-    const auto skyViewMatrix = glm::mat4(glm::mat3(viewMatrix));
-    const auto mvpMatrixLoc =
-        glGetUniformLocation(program.glId(), "uModelViewProjMatrix");
-    cube.draw(modelMatrix, skyViewMatrix, projMatrix, mvpMatrixLoc);
+    const auto skyViewMatrix =
+        glm::mat4(glm::mat3(viewMatrix)); // skybox will not use translation
+    cube.draw(modelMatrix, skyViewMatrix, projMatrix,
+        skyHandler.uModelViewProjMatrix);
     glDepthMask(GL_TRUE);
   }
 
 private:
-  CubeCustom &cube;
+  const CubeCustom &cube;
   GLuint textureID;
   GLProgram program;
+  UniformHandler skyHandler;
 };

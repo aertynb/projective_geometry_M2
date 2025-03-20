@@ -13,6 +13,7 @@
 #include "utils/cube.hpp"
 #include "utils/quad.hpp"
 #include "utils/skybox.hpp"
+#include "utils/uniformHandler.hpp"
 
 #include <stb_image.h>
 #include <stb_image_write.h>
@@ -79,18 +80,6 @@ void process_continuous_input(GLFWwindow *window)
   player.update();
 }
 
-void getUniform(const GLProgram &glslProgram)
-{
-  modelMatrixLocation =
-      glGetUniformLocation(glslProgram.glId(), "uModelMatrix");
-  modelViewProjMatrixLocation =
-      glGetUniformLocation(glslProgram.glId(), "uModelViewProjMatrix");
-  modelViewMatrixLocation =
-      glGetUniformLocation(glslProgram.glId(), "uModelViewMatrix");
-  normalMatrixLocation =
-      glGetUniformLocation(glslProgram.glId(), "uNormalMatrix");
-}
-
 int ViewerApplication::run()
 {
   // Loader shaders
@@ -152,7 +141,8 @@ int ViewerApplication::run()
   glEnable(GL_DEPTH_TEST);
   glslProgram.use();
 
-  getUniform(glslProgram);
+  // getUniform(glslProgram);
+  const UniformHandler mainHandler{glslProgram};
 
   const auto pathToFaces = "assets/";
 
@@ -176,13 +166,9 @@ int ViewerApplication::run()
 
     glslProgram.use();
 
-    quad.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
-        modelViewProjMatrixLocation, modelViewMatrixLocation,
-        normalMatrixLocation);
+    quad.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
 
-    skybox.draw(modelMatrix, viewMatrix, projMatrix, modelMatrixLocation,
-        modelViewProjMatrixLocation, modelViewMatrixLocation,
-        normalMatrixLocation);
+    skybox.draw(modelMatrix, viewMatrix, projMatrix);
   };
 
   // Uniform variable for light

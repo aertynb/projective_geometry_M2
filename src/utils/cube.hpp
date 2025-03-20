@@ -35,6 +35,7 @@ public:
   CubeCustom(GLfloat width, GLfloat height, GLfloat depth) : m_nVertexCount(0)
   {
     build(width, height, depth); // Build method (implementation in the .cpp)
+    initObj(0, 1, 2);
   }
 
   // Returns a pointer to the data
@@ -51,11 +52,11 @@ public:
   void initObj(GLuint vPos, GLuint vNorm, GLuint vTex)
   {
     initVboPointer();
-    initVaoPointer(vPos, vNorm, vTex);
+    initVaoPointer(vPos, vNorm, vTex); // potential error here ^^
   }
 
   void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
-      const glm::mat4 &projMatrix, GLuint modelViewProjMatrixLocation)
+      const glm::mat4 &projMatrix, GLuint modelViewProjMatrixLocation) const
   // TO DO use a struct to pass all args
   {
     const auto mvMatrix = viewMatrix * modelMatrix;
