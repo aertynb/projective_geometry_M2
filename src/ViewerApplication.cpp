@@ -58,17 +58,20 @@ static void cursor_position_callback(
 
 void process_continuous_input(GLFWwindow *window)
 {
+  if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS) {
+    player.jump();
+  }
   if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS) {
-    player.moveUp(0.001f);
+    player.moveUp(1.f);
   }
   if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS) {
-    player.moveUp(-0.001f);
+    player.moveUp(-1.f);
   }
   if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS) {
-    player.moveLeft(0.001f);
+    player.moveLeft(1.f);
   }
   if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS) {
-    player.moveLeft(-0.001f);
+    player.moveLeft(-1.f);
   }
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
     glfwSetWindowShouldClose(window, true);
