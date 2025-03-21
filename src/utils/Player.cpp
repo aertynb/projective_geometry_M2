@@ -44,8 +44,8 @@ void Player::update()
   leftT = kln::translator();    // Identity
 
   // Ground collision detection
-  if (position.y() <= 1.f) {
-    position = kln::point(position.x(), 1.f, position.z()); // Set to ground
+  if (position.y() <= 0.f) {
+    position = kln::point(position.x(), 0.f, position.z()); // Set to ground
     verticalVelocity = 0.f;
     isGrounded = true;
   }

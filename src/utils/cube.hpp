@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glad/glad.h"
+#include "uniformHandler.hpp"
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/vec2.hpp>
@@ -62,6 +63,25 @@ public:
     const auto mvpMatrix = projMatrix * mvMatrix;
     glUniformMatrix4fv(
         modelViewProjMatrixLocation, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
+    glBindBuffer(GL_ARRAY_BUFFER, vbo);
+    glBindVertexArray(vao);
+    glDrawArrays(GL_TRIANGLES, 0, getVertexCount());
+    glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+  }
+
+  void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
+      const glm::mat4 &projMatrix, UniformHandler handler) const
+  {
+    const auto mvMatrix = viewMatrix * modelMatrix;
+    const auto mvpMatrix = projMatrix * mvMatrix;
+    const auto normalMatrix = glm::transpose(glm::inverse(mvMatrix));
+    glUniformMatrix4fv(
+        handler.uModelViewProjMatrix, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
+    glUniformMatrix4fv(
+        handler.uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(mvMatrix));
+    glUniformMatrix4fv(
+        handler.uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBindVertexArray(vao);
     glDrawArrays(GL_TRIANGLES, 0, getVertexCount());

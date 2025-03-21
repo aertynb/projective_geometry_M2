@@ -9,9 +9,9 @@
 class Skybox
 {
 public:
-  Skybox(const std::vector<std::string> &faces, CubeCustom &_cube,
+  Skybox(const std::vector<std::string> &faces,
       const fs::path &m_ShadersRootPath) :
-      cube{_cube},
+      cube{200, 200, 200},
       program{compileProgram({m_ShadersRootPath / "skybox.vs.glsl",
           m_ShadersRootPath / "skybox.fs.glsl"})},
       skyHandler(program)
@@ -55,7 +55,7 @@ public:
   }
 
 private:
-  const CubeCustom &cube;
+  CubeCustom cube;
   GLuint textureID;
   GLProgram program;
   UniformHandler skyHandler;

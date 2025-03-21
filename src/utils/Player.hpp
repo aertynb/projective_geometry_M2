@@ -10,6 +10,7 @@
 class Player
 {
 public:
+  kln::point position;
   glm::FreeflyCamera camera{{position.x(), position.y(), position.z()}};
   Player(const kln::point &_pos) : position{_pos} {}
 
@@ -22,10 +23,9 @@ public:
 private:
   void applyGravity();
 
-  kln::point position;
   kln::direction velocity{0.f, 0.f, 0.f};
   float gravity = -1.0f;
-  float jumpStrength = 1.0f;
+  float jumpStrength = 2.0f;
   float verticalVelocity = 0.f;
   float deltaTime = 0.0320f;
   bool isGrounded = true;

@@ -9,6 +9,7 @@
 #include <glm/gtx/io.hpp>
 
 #include "utils/Player.hpp"
+#include "utils/bbox.hpp"
 #include "utils/cameras.hpp"
 #include "utils/cube.hpp"
 #include "utils/line.hpp"
@@ -24,7 +25,7 @@
 
 bool first_mouse = true;
 bool holdingMouse = true;
-Player player{{0, 2, 0}};
+Player player{{0, 1, 0}};
 LineCustom line;
 float last_xpos = 0;
 float last_ypos = 0;
@@ -163,8 +164,9 @@ int ViewerApplication::run()
       "assets/skybox/back.jpg"};
 
   QuadCustom quad(1, 1);
-  CubeCustom cube(farView, farView, farView);
-  Skybox skybox(faces, cube, m_ShadersRootPath);
+  CubeCustom cube(1, 1, 1);
+  kln::Transformation transfo{kln::point(0.f, 0.f, 0.f)};
+  Skybox skybox(faces, m_ShadersRootPath);
 
   // quad.initObj(0, 1, 2);
   // cube.initObj(0, 1, 2);
@@ -179,7 +181,10 @@ int ViewerApplication::run()
 
     glslProgram.use();
 
-    quad.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
+    cube.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
+
+    std::cout << transfo.collidesWith(player.position) << std::endl;
+    // transfo.collidesWith(player.position);
 
     line.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
   };

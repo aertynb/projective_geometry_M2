@@ -46,7 +46,7 @@ public:
     glm::vec3 end =
         center + (glm::normalize(m_FrontVector) * toLineOfSight(maxDist, 0.5f));
     end.y += 0.5f;
-    std::cout << center << ", " << end << std::endl;
+    // std::cout << center << ", " << end << std::endl;
     build(center, end);
     initObj(0);
     drawing = true;
