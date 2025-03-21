@@ -33,28 +33,41 @@ void Player::update()
   applyGravity();
 
   // Apply jumping motion (always affects position)
-  jumpT = kln::translator(verticalVelocity * deltaTime, 0, 1, 0);
+  vertT = kln::translator(verticalVelocity * deltaTime, 0, 1, 0);
 
-  // Apply combined transformations
-  const auto totalT = forwardT * leftT * jumpT;
-  position = totalT(position);
+  auto newPos = vertT(position);
+  bbox.globalCollidesWith(position);
+  if (bbox.globalCollidesWith(newPos)) {
+    isGrounded = true;
+    verticalVelocity = 0.f;
+    std::cout << "collision vert" << std::endl;
+  } else {
+    position = newPos;
+    isGrounded = false;
+  }
+
+  newPos = leftT(position);
+  if (!bbox.globalCollidesWith(newPos)) {
+    position = newPos;
+  }
+
+  newPos = forwardT(position);
+  if (!bbox.globalCollidesWith(newPos)) {
+    position = newPos;
+  }
+
+  // // Apply combined transformations
+  // const auto totalT = forwardT * leftT * vertT;
+  // position = totalT(position);
 
   // Prevent movement reset (use identity transformation)
   forwardT = kln::translator(); // Identity
   leftT = kln::translator();    // Identity
 
-  // Ground collision detection
-  if (position.y() <= 0.f) {
-    position = kln::point(position.x(), 0.f, position.z()); // Set to ground
-    verticalVelocity = 0.f;
-    isGrounded = true;
-  }
-
-  // Update camera position
   camera.updatePos(getPos());
 }
 
 const glm::vec3 Player::getPos() const
 {
-  return glm::vec3(position.x(), position.y(), position.z());
+  return glm::vec3(position.x(), position.y() + 0.5f, position.z());
 }

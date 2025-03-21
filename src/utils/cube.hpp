@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bbox.hpp"
 #include "glad/glad.h"
 #include "uniformHandler.hpp"
 #include <glm/gtc/matrix_transform.hpp>
@@ -32,11 +33,22 @@ struct CubeVertex
 class CubeCustom
 {
 public:
-  // Constructor: Allocates data and builds the vertex attributes.
-  CubeCustom(GLfloat width, GLfloat height, GLfloat depth) : m_nVertexCount(0)
+  // Constructor for the skybox only
+  CubeCustom(GLfloat width, GLfloat height, GLfloat depth) :
+      m_nVertexCount(0), _position{}
   {
     build(width, height, depth); // Build method (implementation in the .cpp)
     initObj(0, 1, 2);
+  }
+
+  // Constructor for generic cube
+  CubeCustom(GLfloat width, GLfloat height, GLfloat depth,
+      const kln::point &position, kln::Bbox &bbox) :
+      m_nVertexCount(0), _position{position}
+  {
+    build(width, height, depth); // Build method (implementation in the .cpp)
+    initObj(0, 1, 2);
+    bbox.add({_position});
   }
 
   // Returns a pointer to the data
@@ -73,7 +85,9 @@ public:
   void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
       const glm::mat4 &projMatrix, UniformHandler handler) const
   {
-    const auto mvMatrix = viewMatrix * modelMatrix;
+    const auto mvMatrix = viewMatrix * glm::translate(modelMatrix,
+                                           glm::vec3(_position.x(),
+                                               _position.y(), _position.z()));
     const auto mvpMatrix = projMatrix * mvMatrix;
     const auto normalMatrix = glm::transpose(glm::inverse(mvMatrix));
     glUniformMatrix4fv(
@@ -225,4 +239,5 @@ private:
   std::vector<CubeVertex> m_Vertices;
   GLsizei m_nVertexCount; // Number of vertices
   GLuint vao, vbo;
+  const kln::point _position;
 };
