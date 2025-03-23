@@ -27,7 +27,7 @@ bool first_mouse = true;
 bool holdingMouse = true;
 kln::Bbox bbox{};
 Player player{{0, 10, 0}, bbox};
-LineCustom line;
+// LineCustom line;
 float last_xpos = 0;
 float last_ypos = 0;
 
@@ -80,11 +80,11 @@ void process_continuous_input(GLFWwindow *window)
     player.moveLeft(-1.f);
   }
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-    line.createLine(player.getPos(), player.camera.m_FrontVector, 10.0f);
+    player.line.createLine(player.getPos(), player.camera.m_FrontVector, 10.0f);
     holdingMouse = true;
   }
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
-    line.clearVertex();
+    player.line.clearVertex();
     holdingMouse = false;
   }
   if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS) {
@@ -165,8 +165,8 @@ int ViewerApplication::run()
       "assets/skybox/back.jpg"};
 
   QuadCustom quad(1, 1);
-  CubeCustom cube(2, 2, 2, {0.f, 0.f, 0.f}, bbox);
-  CubeCustom cube2(2, 2, 2, {2.f, 2.f, 0.f}, bbox);
+  CubeCustom cube(2, 2, 2);
+  cube.add({{0, 0, 0}, {2, 0, 0}, {5, 0, 0}, {4, 5, 0}}, bbox);
   Skybox skybox(faces, m_ShadersRootPath);
 
   // quad.initObj(0, 1, 2);
@@ -182,12 +182,11 @@ int ViewerApplication::run()
 
     glslProgram.use();
 
-    cube.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
-    cube2.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
+    cube.draw(viewMatrix, projMatrix, mainHandler);
 
     // std::cout << bbox.globalCollidesWith(player.position);
 
-    line.draw(modelMatrix, viewMatrix, projMatrix, mainHandler);
+    player.drawLine(viewMatrix, projMatrix, mainHandler);
   };
 
   // Uniform variable for light

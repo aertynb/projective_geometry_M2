@@ -63,15 +63,20 @@ public:
     initVaoPointer(vPos);
   }
 
-  void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
-      const glm::mat4 &projMatrix, const UniformHandler &handler)
+  void draw(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix,
+      const UniformHandler &handler) const
   {
     if (drawing) {
       //   std::cout << "drawing" << std::endl;
-      const auto mvMatrix = viewMatrix * modelMatrix;
+      const auto mvMatrix = viewMatrix * glm::mat4(1.f);
       const auto mvpMatrix = projMatrix * mvMatrix;
+      const auto normalMatrix = glm::transpose(glm::inverse(mvMatrix));
       glUniformMatrix4fv(
           handler.uModelViewProjMatrix, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
+      glUniformMatrix4fv(
+          handler.uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(mvMatrix));
+      glUniformMatrix4fv(
+          handler.uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
       glBindBuffer(GL_ARRAY_BUFFER, vbo);
       glBindVertexArray(vao);
       glDrawArrays(GL_LINES, 0, getVertexCount());

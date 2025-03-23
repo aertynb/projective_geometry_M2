@@ -40,7 +40,6 @@ void Player::update()
   if (bbox.globalCollidesWith(newPos)) {
     isGrounded = true;
     verticalVelocity = 0.f;
-    std::cout << "collision vert" << std::endl;
   } else {
     position = newPos;
     isGrounded = false;
@@ -65,6 +64,13 @@ void Player::update()
   leftT = kln::translator();    // Identity
 
   camera.updatePos(getPos());
+  // line.updateStartPos(getPos());
+}
+
+void Player::drawLine(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix,
+    UniformHandler handler) const
+{
+  line.draw(viewMatrix, projMatrix, handler);
 }
 
 const glm::vec3 Player::getPos() const

@@ -35,20 +35,10 @@ class CubeCustom
 public:
   // Constructor for the skybox only
   CubeCustom(GLfloat width, GLfloat height, GLfloat depth) :
-      m_nVertexCount(0), _position{}
+      m_nVertexCount(0), positions{}
   {
     build(width, height, depth); // Build method (implementation in the .cpp)
     initObj(0, 1, 2);
-  }
-
-  // Constructor for generic cube
-  CubeCustom(GLfloat width, GLfloat height, GLfloat depth,
-      const kln::point &position, kln::Bbox &bbox) :
-      m_nVertexCount(0), _position{position}
-  {
-    build(width, height, depth); // Build method (implementation in the .cpp)
-    initObj(0, 1, 2);
-    bbox.add({_position});
   }
 
   // Returns a pointer to the data
@@ -82,25 +72,40 @@ public:
     glBindBuffer(GL_ARRAY_BUFFER, 0);
   }
 
-  void draw(const glm::mat4 &modelMatrix, const glm::mat4 &viewMatrix,
-      const glm::mat4 &projMatrix, UniformHandler handler) const
+  void draw(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix,
+      UniformHandler handler) const
   {
-    const auto mvMatrix = viewMatrix * glm::translate(modelMatrix,
-                                           glm::vec3(_position.x(),
-                                               _position.y(), _position.z()));
-    const auto mvpMatrix = projMatrix * mvMatrix;
-    const auto normalMatrix = glm::transpose(glm::inverse(mvMatrix));
-    glUniformMatrix4fv(
-        handler.uModelViewProjMatrix, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
-    glUniformMatrix4fv(
-        handler.uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(mvMatrix));
-    glUniformMatrix4fv(
-        handler.uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBindVertexArray(vao);
-    glDrawArrays(GL_TRIANGLES, 0, getVertexCount());
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    for (const auto &position : positions) {
+      const auto mvMatrix =
+          viewMatrix * glm::translate(glm::mat4(1.f), position);
+      const auto mvpMatrix = projMatrix * mvMatrix;
+      const auto normalMatrix = glm::transpose(glm::inverse(mvMatrix));
+      glUniformMatrix4fv(
+          handler.uModelViewProjMatrix, 1, GL_FALSE, glm::value_ptr(mvpMatrix));
+      glUniformMatrix4fv(
+          handler.uModelViewMatrix, 1, GL_FALSE, glm::value_ptr(mvMatrix));
+      glUniformMatrix4fv(
+          handler.uNormalMatrix, 1, GL_FALSE, glm::value_ptr(normalMatrix));
+      glBindBuffer(GL_ARRAY_BUFFER, vbo);
+      glBindVertexArray(vao);
+      glDrawArrays(GL_TRIANGLES, 0, getVertexCount());
+      glBindVertexArray(0);
+      glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
+  }
+
+  void add(const glm::vec3 &position, kln::Bbox &bbox)
+  {
+    positions.push_back(position);
+    bbox.add({kln::point(position.x, position.y, position.z)});
+  }
+
+  void add(const std::vector<glm::vec3> &_positions, kln::Bbox &bbox)
+  {
+    for (const auto &position : _positions) {
+      positions.push_back(position);
+      bbox.add({kln::point(position.x, position.y, position.z)});
+    }
   }
 
 private:
@@ -239,5 +244,5 @@ private:
   std::vector<CubeVertex> m_Vertices;
   GLsizei m_nVertexCount; // Number of vertices
   GLuint vao, vbo;
-  const kln::point _position;
+  std::vector<glm::vec3> positions;
 };

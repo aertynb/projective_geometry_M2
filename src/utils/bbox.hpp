@@ -15,6 +15,14 @@ private:
   rotor _r{};
   glm::vec3 _scale{1};
 
+public:
+  Transformation(const point &pos, const rotor &r, const glm::vec3 &scale) :
+      _pos{pos}, _r{r}, _scale{scale}
+  {
+  }
+
+  Transformation(const point &pos) : _pos{pos} {}
+
   const std::vector<plane> getPlanes() const
   {
     std::vector<plane> planes(6);
@@ -37,14 +45,6 @@ private:
     return planes;
   };
 
-public:
-  Transformation(const point &pos, const rotor &r, const glm::vec3 &scale) :
-      _pos{pos}, _r{r}, _scale{scale}
-  {
-  }
-
-  Transformation(const point &pos) : _pos{pos} {}
-
   bool collidesWith(const point &targetPos) const
   {
     const auto planes = getPlanes();
@@ -52,7 +52,7 @@ public:
       // const auto plane = planes[5];
       auto d = targetPos ^ plane;
       // std::cout << d.q << std::endl;
-      if (d.q > 0) {
+      if (d.q >= 0) {
         return false;
       }
     }
@@ -79,6 +79,18 @@ public:
       bool collide = transfo.collidesWith(targetPos);
       if (collide)
         return true;
+    }
+    return false;
+  }
+
+  bool computeColliderCoords(const kln::point &start, const kln::point &end)
+  {
+    const auto line = start & end;
+    for (const auto &transfo : transfos) {
+      const auto planes = transfo.getPlanes();
+      for (const auto plane : planes) {
+        const auto point = line ^ plane;
+      }
     }
     return false;
   }
