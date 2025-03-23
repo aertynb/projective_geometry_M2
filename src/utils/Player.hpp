@@ -4,6 +4,7 @@
 #include "bbox.hpp"
 #include "line.hpp"
 
+#include <algorithm>
 #include <glm/vec3.hpp>
 #include <klein/klein.hpp>
 
@@ -23,6 +24,8 @@ public:
   void update();
   void drawLine(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix,
       UniformHandler handler) const;
+  void createLine();
+  void clearLine();
   const glm::vec3 getPos() const;
 
   kln::point position;
@@ -30,15 +33,15 @@ public:
 
 private:
   void applyGravity();
-
-  kln::direction velocity{0.f, 0.f, 0.f};
-  float gravity = -2.0f;
-  float jumpStrength = 2.0f;
+  float speed = 3.0f;
+  float gravity = -9.81f;
+  float jumpStrength = 5.0f;
   float verticalVelocity = 0.f;
   float deltaTime = 0.016f;
-  bool isGrounded = false;
+  bool isGrounded = false, isHooked = false;
   kln::translator forwardT;
   kln::translator leftT;
   kln::translator vertT;
   kln::Bbox &bbox;
+  glm::vec3 velocity{0.0f};
 };

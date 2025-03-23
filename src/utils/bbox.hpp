@@ -83,16 +83,58 @@ public:
     return false;
   }
 
-  bool computeColliderCoords(const kln::point &start, const kln::point &end)
+  glm::vec3 getDirection(const kln::line &line) const
   {
-    const auto line = start & end;
+    return glm::normalize(glm::vec3(line.e23(), line.e31(), line.e12()));
+  }
+
+  bool computeColliderCoords(
+      const kln::point &start, const kln::point &end, glm::vec3 &output) const
+  {
+    auto line = end & start;
     for (const auto &transfo : transfos) {
       const auto planes = transfo.getPlanes();
-      for (const auto plane : planes) {
-        const auto point = line ^ plane;
-      }
+      const auto plane = planes[0];
+      // for (const auto plane : planes) {
+      auto point = line ^ plane;
+      std::cout << plane.x() << ", " << plane.y() << ", " << plane.z() << ", "
+                << plane.d() << std::endl;
+      output = glm::vec3(point.x(), point.y(), point.z());
+      return true;
+      // if (transfo.collidesWith(point)) {
+      //   output = glm::vec3(point.x(), point.y(), point.z());
+      //   return true;
+      // }
+      // }
     }
     return false;
+  }
+
+  bool findIntersection(const kln::point &start, const glm::vec3 &direction,
+      float maxDistance, glm::vec3 &output) const
+  {
+    float stepSize = 0.1f; // Step size for checking (adjust for precision)
+    int nbPlanes = 6;
+    const auto T =
+        kln::translator(stepSize, direction.x, direction.y, direction.z);
+    for (const auto &transfo : transfos) {
+      auto temp = start;
+      for (float t = 0; t <= maxDistance; t += stepSize) {
+        // Generate new point along the direction
+        kln::point samplePoint = T(temp);
+
+        // If intersection is valid (negative sign means in front)
+        if (transfo.collidesWith(samplePoint)) {
+          output = glm::vec3(samplePoint.x(), samplePoint.y(), samplePoint.z());
+          // std::cout << samplePoint.x() << ", " << samplePoint.y() << ", "
+          //           << samplePoint.z() << std::endl;
+          return true;
+        }
+
+        temp = samplePoint;
+      }
+    }
+    return false; // No intersection found within range
   }
 };
 } // namespace kln

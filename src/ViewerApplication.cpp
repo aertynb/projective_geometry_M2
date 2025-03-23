@@ -26,7 +26,7 @@
 bool first_mouse = true;
 bool holdingMouse = true;
 kln::Bbox bbox{};
-Player player{{0, 10, 0}, bbox};
+Player player{{0, 4, 0}, bbox};
 // LineCustom line;
 float last_xpos = 0;
 float last_ypos = 0;
@@ -80,7 +80,7 @@ void process_continuous_input(GLFWwindow *window)
     player.moveLeft(-1.f);
   }
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_PRESS) {
-    player.line.createLine(player.getPos(), player.camera.m_FrontVector, 10.0f);
+    player.createLine();
     holdingMouse = true;
   }
   if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_1) == GLFW_RELEASE) {
@@ -166,7 +166,9 @@ int ViewerApplication::run()
 
   QuadCustom quad(1, 1);
   CubeCustom cube(2, 2, 2);
-  cube.add({{0, 0, 0}, {2, 0, 0}, {5, 0, 0}, {4, 5, 0}}, bbox);
+  cube.add({{0, 0, 0}, {2, 2, 0}, {5, 0, 0}, {4, 5, 0}}, bbox);
+  // cube.add({{0, 0, 0}, {4, 5, 0}}, bbox);
+  // cube.add({0, 0, 0}, bbox);
   Skybox skybox(faces, m_ShadersRootPath);
 
   // quad.initObj(0, 1, 2);

@@ -37,19 +37,44 @@ public:
     glDeleteBuffers(1, &vbo);
     glDeleteVertexArrays(1, &vao);
     drawing = false;
+    collided = false;
   }
 
-  void createLine(
-      const glm::vec3 &start, const glm::vec3 &m_FrontVector, float maxDist)
+  bool createLine(const glm::vec3 &start, const glm::vec3 &m_FrontVector,
+      float maxDist, const kln::Bbox &bbox)
   {
-    const auto center = glm::vec3(start.x, start.y - 0.5f, start.z);
-    glm::vec3 end =
+    if (collided) {
+      const auto center = glm::vec3(start.x, start.y, start.z);
+      build(center);
+      initObj(0);
+      drawing = true;
+      return collided;
+    }
+    const auto center = glm::vec3(start.x, start.y, start.z);
+    end =
         center + (glm::normalize(m_FrontVector) * toLineOfSight(maxDist, 0.5f));
-    end.y += 0.5f;
+
+    glm::vec3 tmp;
+    collided =
+        bbox.findIntersection(kln::point{center.x, center.y + 0.5f, center.z},
+            m_FrontVector, 10.0f, tmp);
+    // std::cout << collided << std::endl;
+
+    if (collided) {
+      end = tmp;
+      auto p1 = kln::point{start.x, start.y, start.z};
+      auto p2 = kln::point{end.x, end.y, end.z};
+      ropeLength = (p1 & p2).norm();
+    }
+
+    // end.y += 0.5f;
+
     // std::cout << center << ", " << end << std::endl;
-    build(center, end);
+    build(center);
     initObj(0);
     drawing = true;
+
+    return collided;
   }
 
   const float toLineOfSight(float maxDist, float center) const
@@ -61,6 +86,29 @@ public:
   {
     initVboPointer();
     initVaoPointer(vPos);
+  }
+
+  kln::translator restrictPosition(const kln::point &playerPos,
+      const kln::point &oldPlayerPos, const glm::vec3 &pos)
+  {
+    if (!collided) {
+      return kln::translator{};
+    }
+    const kln::point ropePos{end.x, end.y, end.z};
+    auto ropeToPlayer = playerPos & ropePos;
+    if (ropeToPlayer.norm() < ropeLength) {
+      return kln::translator{};
+    }
+
+    auto ropeToOld = oldPlayerPos & ropePos;
+
+    glm::vec3 direction = end - pos;
+
+    auto dist = glm::distance(pos, end) - ropeLength;
+
+    kln::translator t{dist, direction.x, direction.y, direction.z};
+
+    return t;
   }
 
   void draw(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix,
@@ -86,7 +134,7 @@ public:
   }
 
 private:
-  void build(const glm::vec3 &start, const glm::vec3 &end)
+  void build(const glm::vec3 &start)
   {
     LineVertex vertices[] = {start, end};
 
@@ -117,5 +165,7 @@ private:
   GLsizei m_nVertexCount;
   GLuint vbo;
   GLuint vao;
-  bool drawing;
+  glm::vec3 end;
+  bool drawing, collided = false;
+  float ropeLength = 0.f;
 };

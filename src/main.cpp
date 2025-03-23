@@ -11,8 +11,8 @@ int main(int argc, char **argv)
 {
   auto returnCode = 0;
 
-  uint32_t width = 1920;
-  uint32_t height = 1080;
+  uint32_t width = 1280;
+  uint32_t height = 720;
 
   ViewerApplication app{fs::path{argv[0]}, width, height};
   returnCode = app.run();
