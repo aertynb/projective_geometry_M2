@@ -33,11 +33,12 @@ public:
 
 private:
   void applyGravity();
-  float speed = 3.0f;
+  float maxSpeed = 3.0f;
+  float currentSpeed = 0.f;
   float gravity = -9.81f;
   float jumpStrength = 5.0f;
   float verticalVelocity = 0.f;
-  float deltaTime = 0.016f;
+  float deltaTime = 0.032f;
   bool isGrounded = false, isHooked = false;
   kln::translator forwardT;
   kln::translator leftT;

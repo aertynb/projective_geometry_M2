@@ -88,27 +88,35 @@ public:
     initVaoPointer(vPos);
   }
 
-  kln::translator restrictPosition(const kln::point &playerPos,
-      const kln::point &oldPlayerPos, const glm::vec3 &pos)
+  kln::translator restrictPosition(
+      const kln::point &playerPos, const bool isGrounded, const glm::vec3 &pos)
   {
     if (!collided) {
       return kln::translator{};
     }
     const kln::point ropePos{end.x, end.y, end.z};
-    auto ropeToPlayer = playerPos & ropePos;
-    if (ropeToPlayer.norm() < ropeLength) {
+    auto ropeToPlayer = playerPos.normalized() & ropePos.normalized();
+    if (ropeToPlayer.norm() <= ropeLength) {
       return kln::translator{};
     }
-
-    auto ropeToOld = oldPlayerPos & ropePos;
 
     glm::vec3 direction = end - pos;
 
     auto dist = glm::distance(pos, end) - ropeLength;
 
-    kln::translator t{dist, direction.x, direction.y, direction.z};
+    if (isGrounded) {
+      kln::translator t{dist, direction.x, 0, direction.z};
+      return t;
+    } else {
+      kln::translator t{dist, direction.x, direction.y, direction.z};
+      return t;
+    }
+  }
 
-    return t;
+  void swing(const kln::point &player, const kln::point &momentum)
+  {
+    const kln::point ropePos{end.x, end.y, end.z};
+    kln::rotor(M_PI * 0.032, 0, 0, -1.f);
   }
 
   void draw(const glm::mat4 &viewMatrix, const glm::mat4 &projMatrix,
@@ -132,6 +140,8 @@ public:
       glBindBuffer(GL_ARRAY_BUFFER, 0);
     }
   }
+
+  glm::vec3 end;
 
 private:
   void build(const glm::vec3 &start)
@@ -165,7 +175,6 @@ private:
   GLsizei m_nVertexCount;
   GLuint vbo;
   GLuint vao;
-  glm::vec3 end;
   bool drawing, collided = false;
   float ropeLength = 0.f;
 };
